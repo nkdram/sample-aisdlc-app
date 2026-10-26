@@ -1,0 +1,46 @@
+Name,Description,Section/Column,Tags,Assignee,Due Date
+"Add a custom tip percentage","As a diner I want to type my own tip percentage when 10/15/20% do not fit.
+
+Acceptance criteria:
+- A ""Custom"" option next to the presets opens a number input for the tip percentage.
+- Values from 0 to 100 are accepted; anything else shows ""Tip must be between 0 and 100%"" and totals do not change.
+- Choosing a preset again hides the custom input.
+- Unit test for any new rule in lib/; Playwright test in e2e/ for the custom flow.
+
+Size: S","Ready for squad","size:S,squad",,
+"Round the per-person amount up","As the person paying I want the per-person amount rounded up to the next whole dollar, so nobody has to deal with coins.
+
+Acceptance criteria:
+- A ""Round up per person"" checkbox, off by default.
+- When on, per person = ceil(total / people) to the next whole dollar, and the total shown is per person x people (the extra goes to the tip).
+- Example: bill 10, tip 10%, 3 people -> per person $4.00, total $12.00, tip $2.00.
+- Pure function in lib/tip.ts with unit tests; e2e test for the checkbox.
+
+Size: S","Ready for squad","size:S,squad",,
+"Remember the last tip choice","As a returning user I want the tip percentage I used last time to be selected when I open the app again.
+
+Acceptance criteria:
+- The selected tip percentage (preset or custom) is saved in localStorage under ""tip-splitter:tip"".
+- On load, a saved valid value is selected; an invalid or missing value falls back to 15%.
+- localStorage errors (private mode) never break the page.
+- Unit test for parsing the saved value; e2e test that reloads the page and sees the choice kept.
+
+Size: S","Ready for squad","size:S,squad",,
+"Show the split as a shareable summary","As the organiser I want to copy a short text summary to paste into a group chat.
+
+Acceptance criteria:
+- A ""Copy summary"" button below the result, enabled only when the bill is valid.
+- The copied text is: ""Bill $X + tip $Y (Z%) = $T. Each of N pays $P."" with values formatted as currency.
+- After copying, the button reads ""Copied"" for 2 seconds.
+- Summary text built by a pure function in lib/ with unit tests; e2e test checks the button state.
+
+Size: S","Ready for squad","size:S,squad",,
+"Support euro and pound","As a traveller I want to choose the currency so amounts display correctly.
+
+Acceptance criteria:
+- A currency select with USD (default), EUR and GBP.
+- All amounts use Intl.NumberFormat for the chosen currency (en-US for USD, de-DE for EUR, en-GB for GBP).
+- The choice does not change any calculation, only formatting.
+- Unit test for the formatter mapping; e2e test switching to EUR shows ""115,00"" style output.
+
+Size: M","Backlog","size:M,squad",,

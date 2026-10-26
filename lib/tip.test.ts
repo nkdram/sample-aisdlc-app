@@ -1,0 +1,24 @@
+import { describe, expect, it } from "vitest";
+import { roundCents, splitBill, TipInputError } from "./tip";
+
+describe("splitBill", () => {
+  it("adds the tip and splits the total", () => {
+    expect(splitBill({ bill: 100, tipPercent: 15, people: 4 })).toEqual({ tip: 15, total: 115, perPerson: 28.75 });
+  });
+
+  it("rounds to cents", () => {
+    expect(splitBill({ bill: 10, tipPercent: 10, people: 3 })).toEqual({ tip: 1, total: 11, perPerson: 3.67 });
+    expect(roundCents(1.005)).toBe(1.01);
+  });
+
+  it("allows a zero bill and a zero tip", () => {
+    expect(splitBill({ bill: 0, tipPercent: 0, people: 1 })).toEqual({ tip: 0, total: 0, perPerson: 0 });
+  });
+
+  it("rejects invalid input", () => {
+    expect(() => splitBill({ bill: -1, tipPercent: 10, people: 1 })).toThrow(TipInputError);
+    expect(() => splitBill({ bill: 10, tipPercent: 101, people: 1 })).toThrow("Tip must be between 0 and 100%");
+    expect(() => splitBill({ bill: 10, tipPercent: 10, people: 0 })).toThrow("At least one person must pay");
+    expect(() => splitBill({ bill: 10, tipPercent: 10, people: 1.5 })).toThrow(TipInputError);
+  });
+});
