@@ -1,6 +1,50 @@
 import { describe, expect, it } from "vitest";
 import { roundCents, splitBill, TipInputError } from "./tip";
 
+function mulberry32(seed: number): () => number {
+  return function () {
+    let t = (seed += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+describe("roundCents", () => {
+  it.each([
+    [1.005, 1.01],
+    [-1.005, -1.01],
+    [2.675, 2.68],
+    [1000.005, 1000.01],
+    [1234567.895, 1234567.9],
+    [0, 0],
+    [-0, 0],
+    [-0.001, 0],
+    [0.004, 0],
+    [0.005, 0.01],
+  ])("rounds %f to %f", (input, expected) => {
+    expect(roundCents(input)).toBe(expected);
+  });
+
+  it("throws TipInputError for non-finite input", () => {
+    expect(() => roundCents(NaN)).toThrow(TipInputError);
+    expect(() => roundCents(NaN)).toThrow("Amount must be a finite number");
+    expect(() => roundCents(Infinity)).toThrow(TipInputError);
+    expect(() => roundCents(Infinity)).toThrow("Amount must be a finite number");
+    expect(() => roundCents(-Infinity)).toThrow(TipInputError);
+    expect(() => roundCents(-Infinity)).toThrow("Amount must be a finite number");
+  });
+
+  it("round-trips 10,000 seeded random cent amounts", () => {
+    const rng = mulberry32(12345);
+    for (let i = 0; i < 10_000; i++) {
+      const cents = Math.floor(rng() * 1_000_001);
+      const amount = cents / 100;
+      expect(roundCents(amount)).toBe(amount);
+    }
+  });
+});
+
 describe("splitBill", () => {
   it("adds the tip and splits the total", () => {
     expect(splitBill({ bill: 100, tipPercent: 15, people: 4 })).toEqual({ tip: 15, total: 115, perPerson: 28.75 });

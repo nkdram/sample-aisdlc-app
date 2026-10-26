@@ -16,9 +16,19 @@ export interface TipResult {
 
 export class TipInputError extends Error {}
 
-/** Rounds to cents, avoiding binary float artefacts such as 1.005 -> 1.00. */
+/**
+ * Rounds to cents, half away from zero.
+ * Throws TipInputError when the input is not a finite number.
+ */
 export function roundCents(value: number): number {
-  return Math.round((value + Number.EPSILON) * 100) / 100;
+  if (!Number.isFinite(value)) {
+    throw new TipInputError("Amount must be a finite number");
+  }
+
+  const scaled = Number(`${value}e2`);
+  const rounded = Math.round(Math.abs(scaled)) * Math.sign(scaled);
+  const result = Number(`${rounded}e-2`);
+  return result === 0 ? 0 : result;
 }
 
 export function splitBill({ bill, tipPercent, people }: TipInput): TipResult {
