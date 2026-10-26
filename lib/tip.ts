@@ -40,5 +40,14 @@ export function splitBill({ bill, tipPercent, people }: TipInput): TipResult {
   return { tip, total, perPerson: roundCents(total / people) };
 }
 
+/** Formats a bill/tip/per-person summary for sharing. */
+export function summaryText(
+  result: TipResult,
+  input: TipInput,
+  format: (n: number) => string
+): string {
+  return `Bill ${format(input.bill)} + tip ${format(result.tip)} (${input.tipPercent}%) = ${format(result.total)}. Each of ${input.people} pays ${format(result.perPerson)}.`;
+}
+
 /** Tip presets shown as buttons. */
 export const TIP_PRESETS = [10, 15, 20] as const;
