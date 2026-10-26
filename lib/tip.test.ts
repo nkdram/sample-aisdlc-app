@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { roundCents, splitBill, TipInputError } from "./tip";
+import { roundCents, splitBill, summaryText, TipInputError } from "./tip";
 
 function mulberry32(seed: number): () => number {
   return function () {
@@ -42,6 +42,26 @@ describe("roundCents", () => {
       const amount = cents / 100;
       expect(roundCents(amount)).toBe(amount);
     }
+  });
+});
+
+describe("summaryText", () => {
+  const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+
+  it("formats the shareable summary for a valid split", () => {
+    const input = { bill: 100, tipPercent: 15, people: 4 };
+    const result = splitBill(input);
+    expect(summaryText(result, input, money.format)).toBe(
+      "Bill $100.00 + tip $15.00 (15%) = $115.00. Each of 4 pays $28.75."
+    );
+  });
+
+  it("formats a zero-bill summary", () => {
+    const input = { bill: 0, tipPercent: 0, people: 1 };
+    const result = splitBill(input);
+    expect(summaryText(result, input, money.format)).toBe(
+      "Bill $0.00 + tip $0.00 (0%) = $0.00. Each of 1 pays $0.00."
+    );
   });
 });
 

@@ -97,3 +97,31 @@ input {
   font-weight: 600;
   text-align: right;
 }
+
+.copy-summary {
+  margin-top: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--brand);
+  border-radius: 8px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.copy-summary:disabled {
+  border-color: var(--line);
+  background: var(--line);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.copy-fallback {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.copy-fallback textarea {
+  resize: vertical;
+}
