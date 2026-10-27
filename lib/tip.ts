@@ -25,10 +25,15 @@ export function roundCents(value: number): number {
     throw new TipInputError("Amount must be a finite number");
   }
 
+  if (String(value).includes("e")) {
+    const result = Math.abs(value) < 0.005 ? 0 : value;
+    return result === 0 ? 0 : result;
+  }
+
   const scaled = Number(`${value}e2`);
   const rounded = Math.round(Math.abs(scaled)) * Math.sign(scaled);
   const result = Number(`${rounded}e-2`);
-  return result === 0 ? 0 : result;
+  return Number.isFinite(result) ? (result === 0 ? 0 : result) : value;
 }
 
 export function splitBill({ bill, tipPercent, people }: TipInput): TipResult {
