@@ -22,6 +22,10 @@ describe("roundCents", () => {
     [-0.001, 0],
     [0.004, 0],
     [0.005, 0.01],
+    [1e-7, 0],
+    [5e-8, 0],
+    [-1e-7, 0],
+    [1e21, 1e21],
   ])("rounds %f to %f", (input, expected) => {
     expect(roundCents(input)).toBe(expected);
   });
