@@ -25,9 +25,13 @@ export function roundCents(value: number): number {
     throw new TipInputError("Amount must be a finite number");
   }
 
-  const scaled = Number(`${value}e2`);
+  const scaled = Number.isSafeInteger(value * 100)
+    ? Number(`${value}e2`)
+    : value * 100;
   const rounded = Math.round(Math.abs(scaled)) * Math.sign(scaled);
-  const result = Number(`${rounded}e-2`);
+  const result = Number.isSafeInteger(value * 100)
+    ? Number(`${rounded}e-2`)
+    : rounded / 100;
   return result === 0 ? 0 : result;
 }
 
