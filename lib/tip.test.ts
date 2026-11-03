@@ -1,5 +1,9 @@
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { roundCents, splitBill, summaryText, TipInputError } from "./tip";
+
+const REPO_ROOT = join(__dirname, "..");
 
 function mulberry32(seed: number): () => number {
   return function () {
@@ -68,6 +72,25 @@ describe("summaryText", () => {
     expect(summaryText(result, input, money.format)).toBe(
       "Bill $0.00 + tip $0.00 (0%) = $0.00. Each of 1 pays $0.00."
     );
+  });
+});
+
+describe("repository setup (APP-40: plan failed on a broken checkout)", () => {
+  it("has the gate scripts the pipeline runs", () => {
+    const pkg = JSON.parse(readFileSync(join(REPO_ROOT, "package.json"), "utf8")) as {
+      scripts?: Record<string, string>;
+    };
+    expect(pkg.scripts?.validate).toBeTruthy();
+    expect(pkg.scripts?.test).toBeTruthy();
+    expect(pkg.scripts?.["test:e2e"]).toBeTruthy();
+  });
+
+  it("is a git checkout with a .gitignore covering generated trees", () => {
+    expect(existsSync(join(REPO_ROOT, ".git"))).toBe(true);
+    const ignore = readFileSync(join(REPO_ROOT, ".gitignore"), "utf8").split(/\r?\n/);
+    for (const entry of ["node_modules", ".next", "dist", "build", "coverage"]) {
+      expect(ignore.some((line) => line.replace(/\/$/, "") === entry)).toBe(true);
+    }
   });
 });
 
