@@ -8,3 +8,11 @@ playwright-report/
 *.tsbuildinfo
 .env*
 !.env.example
+
+# Agent Squad: keep generated trees out of commits
+.turbo
+dist
+build
+.cache
+.env
+.env.*

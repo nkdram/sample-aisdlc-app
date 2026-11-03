@@ -33,7 +33,10 @@ export function roundCents(value: number): number {
   const scaled = Number(`${value}e2`);
   const rounded = Math.round(Math.abs(scaled)) * Math.sign(scaled);
   const result = Number(`${rounded}e-2`);
-  return Number.isFinite(result) ? (result === 0 ? 0 : result) : value;
+  if (!Number.isFinite(result)) {
+    return value;
+  }
+  return result === 0 ? 0 : result;
 }
 
 export function splitBill({ bill, tipPercent, people }: TipInput): TipResult {
