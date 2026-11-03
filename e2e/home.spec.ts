@@ -1,5 +1,10 @@
 import { expect, test } from "@playwright/test";
 
+test("footer shows the app version", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("footer")).toContainText(/Tip splitter v\d+\.\d+\.\d+/);
+});
+
 test("splits a bill with the default 15% tip", async ({ page }) => {
   await page.goto("/");
   await page.getByLabel("Bill").fill("100");

@@ -77,6 +77,14 @@ input {
   color: #fff;
 }
 
+.footer {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 0 16px 24px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .error {
   margin: 0;
   color: var(--danger);
