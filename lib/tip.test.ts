@@ -85,6 +85,15 @@ describe("splitBill", () => {
     expect(splitBill({ bill: 0, tipPercent: 0, people: 1 })).toEqual({ tip: 0, total: 0, perPerson: 0 });
   });
 
+  it("does not depend on the checkout's git config or lock files", () => {
+    // Regression for APP-39: the plan stage failed with "could not lock config file"
+    // while cloning into a temp workspace. The pure split rules have no I/O, so the
+    // same input must always produce the same result regardless of environment.
+    const input = { bill: 10, tipPercent: 10, people: 3 };
+    expect(splitBill(input)).toEqual({ tip: 1, total: 11, perPerson: 3.67 });
+    expect(splitBill(input)).toEqual(splitBill(input));
+  });
+
   it("rejects invalid input", () => {
     expect(() => splitBill({ bill: -1, tipPercent: 10, people: 1 })).toThrow(TipInputError);
     expect(() => splitBill({ bill: 10, tipPercent: 101, people: 1 })).toThrow("Tip must be between 0 and 100%");
