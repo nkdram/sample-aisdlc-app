@@ -28,6 +28,11 @@ describe("roundCents", () => {
     [1e19, 1e19],
     [1e20, 1e20],
     [1e21, 1e21],
+    [-1e21, -1e21],
+    [1.7976931348623157e308, 1.7976931348623157e308],
+    [-0.004, 0],
+    [-0.005, -0.01],
+    [123456789012.345, 123456789012.35],
   ])("rounds %f to %f", (input, expected) => {
     expect(roundCents(input)).toBe(expected);
   });
@@ -39,6 +44,16 @@ describe("roundCents", () => {
     expect(() => roundCents(Infinity)).toThrow("Amount must be a finite number");
     expect(() => roundCents(-Infinity)).toThrow(TipInputError);
     expect(() => roundCents(-Infinity)).toThrow("Amount must be a finite number");
+  });
+
+  it.each([NaN, Infinity, -Infinity])("never returns a non-finite value for %f", (input) => {
+    expect(Number.isFinite(input)).toBe(false);
+    expect(() => roundCents(input)).toThrow(TipInputError);
+  });
+
+  it("returns +0 (not -0) for negative values that round to zero", () => {
+    expect(Object.is(roundCents(-0.001), 0)).toBe(true);
+    expect(Object.is(roundCents(-1e-7), 0)).toBe(true);
   });
 
   it("round-trips 10,000 seeded random cent amounts", () => {
