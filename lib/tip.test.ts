@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { roundCents, splitBill, summaryText, TipInputError } from "./tip";
+import { parseAmount, roundCents, splitBill, summaryText, TipInputError } from "./tip";
 
 function mulberry32(seed: number): () => number {
   return function () {
@@ -71,7 +71,32 @@ describe("summaryText", () => {
   });
 });
 
+describe("parseAmount", () => {
+  it("reads a plain decimal", () => {
+    expect(parseAmount("42.5")).toBe(42.5);
+  });
+
+  it("treats whitespace-only text as zero without error", () => {
+    expect(parseAmount(" ")).toBe(0);
+    expect(parseAmount("")).toBe(0);
+  });
+
+  it("rejects non-numeric text with a helpful message", () => {
+    expect(() => parseAmount("abc")).toThrow(TipInputError);
+    expect(() => parseAmount("abc")).toThrow("Enter an amount like 42.50");
+  });
+
+  it("rejects negative amounts", () => {
+    expect(() => parseAmount("-5")).toThrow(TipInputError);
+    expect(() => parseAmount("-5")).toThrow("Bill must be zero or more");
+  });
+});
+
 describe("splitBill", () => {
+  it("reports NaN bills with the non-numeric message", () => {
+    expect(() => splitBill({ bill: NaN, tipPercent: 10, people: 1 })).toThrow("Enter an amount like 42.50");
+  });
+
   it("adds the tip and splits the total", () => {
     expect(splitBill({ bill: 100, tipPercent: 15, people: 4 })).toEqual({ tip: 15, total: 115, perPerson: 28.75 });
   });
@@ -86,7 +111,7 @@ describe("splitBill", () => {
   });
 
   it("rejects invalid input", () => {
-    expect(() => splitBill({ bill: -1, tipPercent: 10, people: 1 })).toThrow(TipInputError);
+    expect(() => splitBill({ bill: -1, tipPercent: 10, people: 1 })).toThrow("Bill must be zero or more");
     expect(() => splitBill({ bill: 10, tipPercent: 101, people: 1 })).toThrow("Tip must be between 0 and 100%");
     expect(() => splitBill({ bill: 10, tipPercent: 10, people: 0 })).toThrow("At least one person must pay");
     expect(() => splitBill({ bill: 10, tipPercent: 10, people: 1.5 })).toThrow(TipInputError);

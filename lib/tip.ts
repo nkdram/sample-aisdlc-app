@@ -36,7 +36,21 @@ export function roundCents(value: number): number {
   return Number.isFinite(result) ? (result === 0 ? 0 : result) : value;
 }
 
+/**
+ * Parses the bill text. Blank or whitespace-only text is zero (no error).
+ * Non-numeric text throws "Enter an amount like 42.50"; negatives throw "Bill must be zero or more".
+ */
+export function parseAmount(text: string): number {
+  const trimmed = text.trim();
+  if (trimmed === "") return 0;
+  const value = Number(trimmed);
+  if (!Number.isFinite(value)) throw new TipInputError("Enter an amount like 42.50");
+  if (value < 0) throw new TipInputError("Bill must be zero or more");
+  return value;
+}
+
 export function splitBill({ bill, tipPercent, people }: TipInput): TipResult {
+  if (Number.isNaN(bill)) throw new TipInputError("Enter an amount like 42.50");
   if (!Number.isFinite(bill) || bill < 0) throw new TipInputError("Bill must be zero or more");
   if (!Number.isFinite(tipPercent) || tipPercent < 0 || tipPercent > 100) throw new TipInputError("Tip must be between 0 and 100%");
   if (!Number.isInteger(people) || people < 1) throw new TipInputError("At least one person must pay");

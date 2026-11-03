@@ -23,6 +23,12 @@ test("explains invalid input", async ({ page }) => {
   await expect(page.getByRole("alert")).toHaveText("At least one person must pay");
 });
 
+test("explains a non-numeric bill", async ({ page }) => {
+  await page.goto("/");
+  await page.getByLabel("Bill").fill("abc");
+  await expect(page.getByRole("alert")).toHaveText("Enter an amount like 42.50");
+});
+
 test("copy summary button is disabled without a valid bill", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByTestId("copy-summary")).toBeDisabled();

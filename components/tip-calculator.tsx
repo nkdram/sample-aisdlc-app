@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { splitBill, summaryText, TIP_PRESETS, TipInputError, type TipResult } from "@/lib/tip";
+import { parseAmount, splitBill, summaryText, TIP_PRESETS, TipInputError, type TipResult } from "@/lib/tip";
 
 const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 
@@ -21,19 +21,21 @@ export function TipCalculator() {
 
   let result: TipResult | null = null;
   let error: string | null = null;
-  if (bill !== "") {
-    try {
-      result = splitBill({ bill: Number(bill), tipPercent, people: Number(people) });
-    } catch (e) {
-      if (!(e instanceof TipInputError)) throw e;
-      error = e.message;
+  let billAmount = 0;
+  try {
+    billAmount = parseAmount(bill);
+    if (bill.trim() !== "") {
+      result = splitBill({ bill: billAmount, tipPercent, people: Number(people) });
     }
+  } catch (e) {
+    if (!(e instanceof TipInputError)) throw e;
+    error = e.message;
   }
 
   const canCopy = result !== null && !error;
   const summary =
     canCopy && result !== null
-      ? summaryText(result, { bill: Number(bill), tipPercent, people: Number(people) }, money.format)
+      ? summaryText(result, { bill: billAmount, tipPercent, people: Number(people) }, money.format)
       : "";
 
   async function handleCopy() {
