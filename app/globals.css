@@ -98,6 +98,7 @@ input {
   text-align: right;
 }
 
+.primary-button,
 .copy-summary {
   margin-top: 4px;
   padding: 10px 12px;
@@ -109,6 +110,7 @@ input {
   cursor: pointer;
 }
 
+.primary-button:disabled,
 .copy-summary:disabled {
   border-color: var(--line);
   background: var(--line);
