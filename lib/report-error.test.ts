@@ -7,6 +7,7 @@ import {
   reportError,
   resetReportBudget,
 } from "./report-error";
+import { POST } from "@/app/api/errors/route";
 
 function errorWithDigest(message: string, digest?: string): Error & { digest?: string } {
   const error: Error & { digest?: string } = new Error(message);
@@ -176,3 +177,63 @@ describe("server side helpers", () => {
     expect(JSON.parse(line)).toMatchObject({ level: "error", event: "client_error", message: "boom" });
   });
 });
+
+describe("POST /api/errors", () => {
+  it("logs exactly one JSON line and answers 204", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const response = await postErrorReport({
+      message: "boom",
+      stack: "at x",
+      digest: "d1",
+      url: "http://localhost:3000/",
+      version: "1.2.3",
+      bill: 42.5,
+      name: "Ada",
+    });
+
+    expect(response.status).toBe(204);
+    expect(log).toHaveBeenCalledTimes(1);
+    const line = String(log.mock.calls[0]?.[0] ?? "");
+    expect(line).not.toContain("\n");
+    const logged = JSON.parse(line) as Record<string, unknown>;
+    expect(logged).toMatchObject({
+      level: "error",
+      event: "client_error",
+      message: "boom",
+      digest: "d1",
+      version: "1.2.3",
+    });
+    // Untrusted extra fields never reach the log line.
+    expect(logged).not.toHaveProperty("bill");
+    expect(logged).not.toHaveProperty("name");
+    log.mockRestore();
+  });
+
+  it("still answers 204 and logs one line for a body that is not JSON", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const response = await postErrorReport("not json at all");
+
+    expect(response.status).toBe(204);
+    expect(log).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(String(log.mock.calls[0]?.[0] ?? ""))).toMatchObject({
+      level: "error",
+      event: "client_error",
+      message: "Unknown error",
+    });
+    log.mockRestore();
+  });
+});
+
+/** Calls the route handler the way the browser reporter does. */
+function postErrorReport(body: unknown): Promise<Response> {
+  return POST(
+    new Request("http://localhost:3000/api/errors", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: typeof body === "string" ? body : JSON.stringify(body),
+    })
+  );
+}
+
