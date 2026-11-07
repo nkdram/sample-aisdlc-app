@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("shows the error boundary, reports the error and recovers on Try again", async ({ page }) => {
+test('open /?crash=1, see "Something went wrong", intercept the /api/errors request and assert its fields; click Try again', async ({ page }) => {
   const reports: Record<string, unknown>[] = [];
   await page.route("**/api/errors", async (route) => {
     reports.push(route.request().postDataJSON() as Record<string, unknown>);
@@ -47,7 +47,7 @@ test("the /api/errors route accepts a report and answers 204", async ({ request 
   expect(response.status()).toBe(204);
 });
 
-test("does not crash without the trigger", async ({ page }) => {
+test("does not crash when the test-only ?crash=1 trigger is absent", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Tip splitter" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Something went wrong" })).toHaveCount(0);
