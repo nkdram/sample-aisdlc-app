@@ -125,3 +125,79 @@ input {
 .copy-fallback textarea {
   resize: vertical;
 }
+
+.save-split,
+.clear-history,
+.history-delete {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--ink);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.save-split:disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.history-link {
+  color: var(--brand);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.empty {
+  margin: 0;
+  color: var(--muted);
+}
+
+.history {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.history-entry {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+}
+
+.history-date {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.history-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.history-load {
+  padding: 10px 12px;
+  border: 1px solid var(--brand);
+  border-radius: 8px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 16px;
+  text-decoration: none;
+}
+
+.clear-history {
+  margin-bottom: 16px;
+  color: var(--danger);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
