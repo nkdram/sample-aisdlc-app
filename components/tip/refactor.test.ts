@@ -25,7 +25,6 @@ const FOCUSED_COMPONENTS = [
 const CONFLICTING_FEATURES: ReadonlyArray<{ ticket: string; pattern: RegExp }> = [
   { ticket: "Add a custom tip percentage", pattern: /custom/i },
   { ticket: "People stepper buttons", pattern: /stepper|increment|decrement/i },
-  { ticket: "Show the tip per person", pattern: /tipPerPerson|tip per person/i },
   { ticket: "Round the per-person amount up", pattern: /roundUp|round up|Math\.ceil/i },
   { ticket: "Support euro and pound", pattern: /euro|pound|gbp|eur\b/i },
   { ticket: "Split unevenly by shares", pattern: /\bshares\b|\bweights?\b/i },
@@ -105,7 +104,7 @@ describe("components/tip split", () => {
     const result = read(join(tipDir, "ResultList.tsx"));
     expect(result).toContain('className="result"');
     expect(result).toContain('aria-live="polite"');
-    for (const testId of ["tip", "total", "per-person"]) {
+    for (const testId of ["tip", "total", "per-person", "tip-per-person"]) {
       expect(result).toContain(`data-testid="${testId}"`);
     }
     expect(result).toContain("money.format");
@@ -129,7 +128,7 @@ describe("components/tip split", () => {
 
     // Same derived values and text as before the split.
     expect(useTipCalculation("100", 15, "4")).toEqual({
-      result: { tip: 15, total: 115, perPerson: 28.75 },
+      result: { tip: 15, total: 115, perPerson: 28.75, tipPerPerson: 3.75 },
       error: null,
       summary: "Bill $100.00 + tip $15.00 (15%) = $115.00. Each of 4 pays $28.75.",
       canCopy: true,
@@ -194,7 +193,7 @@ describe("components/tip split", () => {
     expect(Object.keys(pkg.dependencies).sort()).toEqual(["next", "react", "react-dom"]);
   });
 
-  it("conflicts with: Add a custom tip percentage, People stepper buttons, Show the tip per person, Round the per-person amount up, Support euro and pound, Split unevenly by shares, Itemised bills, Keyboard shortcuts — none of them is present", () => {
+  it("conflicts with: Add a custom tip percentage, People stepper buttons, Round the per-person amount up, Support euro and pound, Split unevenly by shares, Itemised bills, Keyboard shortcuts — none of them is present", () => {
     const files = [calculatorPath, ...productFiles(tipDir)];
     for (const file of files) {
       const source = read(file);
