@@ -12,6 +12,8 @@ export interface TipResult {
   readonly tip: number;
   readonly total: number;
   readonly perPerson: number;
+  /** The tip alone, split evenly and rounded to cents. */
+  readonly tipPerPerson: number;
 }
 
 export class TipInputError extends Error {}
@@ -42,7 +44,7 @@ export function splitBill({ bill, tipPercent, people }: TipInput): TipResult {
   if (!Number.isInteger(people) || people < 1) throw new TipInputError("At least one person must pay");
   const tip = roundCents((bill * tipPercent) / 100);
   const total = roundCents(bill + tip);
-  return { tip, total, perPerson: roundCents(total / people) };
+  return { tip, total, perPerson: roundCents(total / people), tipPerPerson: roundCents(tip / people) };
 }
 
 /** Formats a bill/tip/per-person summary for sharing. */
