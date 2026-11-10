@@ -38,6 +38,19 @@ describe("formatMoney", () => {
 });
 
 describe("parseBillAmount", () => {
+  it('Unit: formatter mapping and comma parsing ("42,50" -> 42.5 for EUR).', () => {
+    // Formatter mapping: one locale per currency.
+    expect(formatMoney("USD").resolvedOptions().locale).toBe("en-US");
+    expect(formatMoney("EUR").resolvedOptions().locale).toBe("de-DE");
+    expect(formatMoney("GBP").resolvedOptions().locale).toBe("en-GB");
+
+    // Comma parsing: the same typed amount, read in the selected currency.
+    expect(parseBillAmount("42,50", "EUR")).toBe(42.5);
+    expect(parseBillAmount("42.50", "EUR")).toBe(42.5);
+    expect(parseBillAmount("42.50", "USD")).toBe(42.5);
+    expect(parseBillAmount("42.50", "GBP")).toBe(42.5);
+  });
+
   it("The bill input accepts a comma as the decimal separator when EUR is selected", () => {
     expect(parseBillAmount("42,50", "EUR")).toBe(42.5);
     expect(parseBillAmount("100", "EUR")).toBe(100);
