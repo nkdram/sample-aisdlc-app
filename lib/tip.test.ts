@@ -73,16 +73,57 @@ describe("summaryText", () => {
 
 describe("splitBill", () => {
   it("adds the tip and splits the total", () => {
-    expect(splitBill({ bill: 100, tipPercent: 15, people: 4 })).toEqual({ tip: 15, total: 115, perPerson: 28.75 });
+    expect(splitBill({ bill: 100, tipPercent: 15, people: 4 })).toEqual({
+      tip: 15,
+      total: 115,
+      perPerson: 28.75,
+      tipPerPerson: 3.75,
+    });
   });
 
   it("rounds to cents", () => {
-    expect(splitBill({ bill: 10, tipPercent: 10, people: 3 })).toEqual({ tip: 1, total: 11, perPerson: 3.67 });
+    expect(splitBill({ bill: 10, tipPercent: 10, people: 3 })).toEqual({
+      tip: 1,
+      total: 11,
+      perPerson: 3.67,
+      tipPerPerson: 0.33,
+    });
     expect(roundCents(1.005)).toBe(1.01);
   });
 
   it("allows a zero bill and a zero tip", () => {
-    expect(splitBill({ bill: 0, tipPercent: 0, people: 1 })).toEqual({ tip: 0, total: 0, perPerson: 0 });
+    expect(splitBill({ bill: 0, tipPercent: 0, people: 1 })).toEqual({
+      tip: 0,
+      total: 0,
+      perPerson: 0,
+      tipPerPerson: 0,
+    });
+  });
+
+  it("Tip per person = tip / people, rounded to cents", () => {
+    expect(splitBill({ bill: 100, tipPercent: 15, people: 4 }).tipPerPerson).toBe(3.75);
+    expect(splitBill({ bill: 10, tipPercent: 10, people: 3 }).tipPerPerson).toBe(0.33);
+    // 10% of 10.05 is 1.005 -> tip 1.01, split three ways -> 0.34 (rounded to cents).
+    expect(splitBill({ bill: 10.05, tipPercent: 10, people: 3 }).tipPerPerson).toBe(0.34);
+  });
+
+  it("With 1 person the tip per person equals the tip", () => {
+    for (const input of [
+      { bill: 100, tipPercent: 15, people: 1 },
+      { bill: 10, tipPercent: 10, people: 1 },
+      { bill: 0, tipPercent: 0, people: 1 },
+      { bill: 42.42, tipPercent: 20, people: 1 },
+    ]) {
+      const result = splitBill(input);
+      expect(result.tipPerPerson).toBe(result.tip);
+    }
+  });
+
+  it("keeps the existing tip, total and per-person fields unchanged", () => {
+    const result = splitBill({ bill: 100, tipPercent: 15, people: 4 });
+    expect(result.tip).toBe(15);
+    expect(result.total).toBe(115);
+    expect(result.perPerson).toBe(28.75);
   });
 
   it("rejects invalid input", () => {
