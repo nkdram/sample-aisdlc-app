@@ -1,5 +1,6 @@
+import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { roundCents, splitBill, summaryText, TipInputError } from "./tip";
+import { MAX_BILL, roundCents, splitBill, summaryText, TipInputError } from "./tip";
 
 function mulberry32(seed: number): () => number {
   return function () {
@@ -131,5 +132,105 @@ describe("splitBill", () => {
     expect(() => splitBill({ bill: 10, tipPercent: 101, people: 1 })).toThrow("Tip must be between 0 and 100%");
     expect(() => splitBill({ bill: 10, tipPercent: 10, people: 0 })).toThrow("At least one person must pay");
     expect(() => splitBill({ bill: 10, tipPercent: 10, people: 1.5 })).toThrow(TipInputError);
+  });
+
+  it("rejects bills with more than two decimals", () => {
+    expect(() => splitBill({ bill: 10.005, tipPercent: 15, people: 1 })).toThrow(TipInputError);
+    expect(() => splitBill({ bill: 10.005, tipPercent: 15, people: 1 })).toThrow("Use at most 2 decimals");
+    expect(() => splitBill({ bill: 0.001, tipPercent: 15, people: 1 })).toThrow("Use at most 2 decimals");
+  });
+
+  it("rejects bills over the maximum", () => {
+    expect(() => splitBill({ bill: 1_000_000.01, tipPercent: 15, people: 1 })).toThrow(TipInputError);
+    expect(() => splitBill({ bill: 1_000_000.01, tipPercent: 15, people: 1 })).toThrow(
+      "Bill is too large (max 1,000,000)"
+    );
+    expect(() => splitBill({ bill: 1e9, tipPercent: 15, people: 1 })).toThrow("Bill is too large (max 1,000,000)");
+  });
+
+  it("accepts exactly the maximum bill", () => {
+    expect(MAX_BILL).toBe(1_000_000);
+    expect(splitBill({ bill: MAX_BILL, tipPercent: 15, people: 1 })).toEqual({
+      tip: 150_000,
+      total: 1_150_000,
+      perPerson: 1_150_000,
+      tipPerPerson: 150_000,
+    });
+    expect(splitBill({ bill: 1_000_000.0, tipPercent: 15, people: 1 })).toEqual({
+      tip: 150_000,
+      total: 1_150_000,
+      perPerson: 1_150_000,
+      tipPerPerson: 150_000,
+    });
+  });
+
+  it("accepts two-decimal amounts without float drift", () => {
+    expect(splitBill({ bill: 0.1, tipPercent: 10, people: 1 })).toEqual({
+      tip: 0.01,
+      total: 0.11,
+      perPerson: 0.11,
+      tipPerPerson: 0.01,
+    });
+    expect(splitBill({ bill: 42.5, tipPercent: 15, people: 2 })).toEqual({
+      tip: 6.38,
+      total: 48.88,
+      perPerson: 24.44,
+      tipPerPerson: 3.19,
+    });
+  });
+
+  it("Add the rules to splitBill's validation so the UI and any future API share them.", () => {
+    // Both rules live in the pure lib function, so every caller (the page today, an API later)
+    // gets the same user-facing messages without re-implementing the checks.
+    const decimals = (() => {
+      try {
+        splitBill({ bill: 10.005, tipPercent: 15, people: 1 });
+        return undefined;
+      } catch (error) {
+        return error;
+      }
+    })();
+    expect(decimals).toBeInstanceOf(TipInputError);
+    expect((decimals as Error).message).toBe("Use at most 2 decimals");
+
+    const tooLarge = (() => {
+      try {
+        splitBill({ bill: 1_000_000.01, tipPercent: 15, people: 1 });
+        return undefined;
+      } catch (error) {
+        return error;
+      }
+    })();
+    expect(tooLarge).toBeInstanceOf(TipInputError);
+    expect((tooLarge as Error).message).toBe("Bill is too large (max 1,000,000)");
+
+    // No component re-implements the rules: the UI only renders the message splitBill throws.
+    const componentSources = readdirSync(new URL("../components/tip/", import.meta.url))
+      .filter((file) => (file.endsWith(".ts") || file.endsWith(".tsx")) && !file.endsWith(".test.ts"))
+      .map((file) => readFileSync(new URL(`../components/tip/${file}`, import.meta.url), "utf8"));
+    for (const source of componentSources) {
+      expect(source).not.toContain("1_000_000");
+      expect(source).not.toContain("Use at most 2 decimals");
+      expect(source).not.toContain("Bill is too large");
+    }
+  });
+
+  it("Unit: 10.005, 1000000, 1000000.01, 0.1.", () => {
+    expect(() => splitBill({ bill: 10.005, tipPercent: 15, people: 1 })).toThrow("Use at most 2 decimals");
+    expect(splitBill({ bill: 1_000_000, tipPercent: 15, people: 1 })).toEqual({
+      tip: 150_000,
+      total: 1_150_000,
+      perPerson: 1_150_000,
+      tipPerPerson: 150_000,
+    });
+    expect(() => splitBill({ bill: 1_000_000.01, tipPercent: 15, people: 1 })).toThrow(
+      "Bill is too large (max 1,000,000)"
+    );
+    expect(splitBill({ bill: 0.1, tipPercent: 10, people: 1 })).toEqual({
+      tip: 0.01,
+      total: 0.11,
+      perPerson: 0.11,
+      tipPerPerson: 0.01,
+    });
   });
 });
