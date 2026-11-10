@@ -23,6 +23,32 @@ test("explains invalid input", async ({ page }) => {
   await expect(page.getByRole("alert")).toHaveText("At least one person must pay");
 });
 
+test("explains a bill with more than two decimals", async ({ page }) => {
+  await page.goto("/");
+  await page.getByLabel("Bill").fill("10.005");
+  await expect(page.getByRole("alert")).toHaveText("Use at most 2 decimals");
+});
+
+test("E2E: 10.005 shows the decimals message.", async ({ page }) => {
+  await page.goto("/");
+  await page.getByLabel("Bill").fill("10.005");
+  await expect(page.getByRole("alert")).toHaveText("Use at most 2 decimals");
+  await expect(page.getByTestId("total")).toHaveText("$0.00");
+});
+
+test("explains a bill over the maximum", async ({ page }) => {
+  await page.goto("/");
+  await page.getByLabel("Bill").fill("1000000.01");
+  await expect(page.getByRole("alert")).toHaveText("Bill is too large (max 1,000,000)");
+});
+
+test("accepts exactly the maximum bill", async ({ page }) => {
+  await page.goto("/");
+  await page.getByLabel("Bill").fill("1000000.00");
+  await expect(page.getByTestId("tip")).toHaveText("$150,000.00");
+  await expect(page.getByTestId("total")).toHaveText("$1,150,000.00");
+});
+
 test("copy summary button is disabled without a valid bill", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByTestId("copy-summary")).toBeDisabled();
