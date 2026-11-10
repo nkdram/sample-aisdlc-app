@@ -21,7 +21,7 @@ describe("TipCalculator", () => {
 
   it("keeps splitBill in exactly one place in the UI", () => {
     const callers = readdirSync(tipDir)
-      .filter((file) => file.endsWith(".ts") || file.endsWith(".tsx"))
+      .filter((file) => (file.endsWith(".ts") || file.endsWith(".tsx")) && !file.endsWith(".test.ts"))
       .filter((file) => readFileSync(new URL(file, tipDir), "utf8").includes("splitBill("));
     expect(callers).toEqual(["useTipCalculation.ts"]);
   });
