@@ -29,7 +29,6 @@ const CONFLICTING_FEATURES: ReadonlyArray<{ ticket: string; pattern: RegExp }> =
   { ticket: "Support euro and pound", pattern: /euro|pound|gbp|eur\b/i },
   { ticket: "Split unevenly by shares", pattern: /\bshares\b|\bweights?\b/i },
   { ticket: "Itemised bills", pattern: /itemis|itemiz/i },
-  { ticket: "Keyboard shortcuts", pattern: /onKeyDown|onKeyUp|onKeyPress|keydown/i },
 ];
 
 function read(path: string): string {

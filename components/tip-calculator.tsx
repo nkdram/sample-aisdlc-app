@@ -6,6 +6,7 @@ import { CopySummary } from "@/components/tip/CopySummary";
 import { ErrorMessage } from "@/components/tip/ErrorMessage";
 import { PeopleInput } from "@/components/tip/PeopleInput";
 import { ResultList } from "@/components/tip/ResultList";
+import { Shortcuts } from "@/components/tip/Shortcuts";
 import { TipPresets } from "@/components/tip/TipPresets";
 import { useCopySummary } from "@/components/tip/useCopySummary";
 import { useTipCalculation } from "@/components/tip/useTipCalculation";
@@ -31,6 +32,7 @@ export function TipCalculator() {
         canCopy={canCopy}
         onCopy={handleCopy}
       />
+      <Shortcuts people={people} onPeopleChange={setPeople} onPreset={setTipPercent} billInputId="bill" />
     </section>
   );
 }

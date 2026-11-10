@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # The ticket's gate: typecheck, unit tests and build.
+      - run: npm run validate
+      # The ticket's gate: the Playwright suite, which cannot run in every sandbox.
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
