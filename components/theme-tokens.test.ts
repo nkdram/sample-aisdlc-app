@@ -52,6 +52,21 @@ describe("theme tokens", () => {
     expect(focusRule).toContain("var(--focus)");
   });
 
+  it("pins the e2e contract: colorScheme dark emulation plus an axe scan in both schemes", () => {
+    // The ticket's test plan asks for exactly this, and the browser run cannot
+    // happen in every environment, so the contract is pinned here too.
+    const spec = readFileSync(new URL("../e2e/dark-mode.spec.ts", import.meta.url), "utf8");
+    expect(spec).toContain('colorScheme: "dark"');
+    expect(spec).toContain('emulateMedia({ colorScheme: "dark" })');
+    expect(spec).toContain('for (const colorScheme of ["dark", "light"] as const)');
+    expect(spec).toContain("runAxe(page)");
+    expect(spec).toContain("getComputedStyle(document.body).backgroundColor");
+
+    const axe = readFileSync(new URL("../e2e/axe.ts", import.meta.url), "utf8");
+    expect(axe).toContain("@axe-core/playwright");
+    expect(axe).toContain("axe-core@4.10.2");
+  });
+
   it("keeps components free of hard-coded colours: they read the tokens", () => {
     // Only the two white labels on the --brand background may be literal.
     const literals = css.match(/#[0-9a-fA-F]{3,8}\b/g) ?? [];

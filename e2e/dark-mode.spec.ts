@@ -1,10 +1,12 @@
 import { expect, test } from "@playwright/test";
+import { blockingViolations, runAxe } from "./axe";
 import { measureContrast, measureFocusOutline, type ContrastCheck } from "./contrast";
 
 // Dark mode is pure CSS: app/globals.css overrides the --* tokens inside a
 // prefers-color-scheme: dark media query. These tests emulate the system
-// setting and check the resulting computed colors and WCAG AA contrast.
-// No axe dependency is installed, so contrast is computed numerically.
+// setting and check the resulting computed colors, WCAG AA contrast and the
+// axe scan in both schemes. No axe dependency is installed, so contrast is also
+// computed numerically (see e2e/contrast.ts) and e2e/axe.ts documents the swap.
 
 const TEXT_MIN = 4.5;
 const NON_TEXT_MIN = 3;
@@ -20,6 +22,13 @@ const CONTRAST_TARGETS: ContrastCheck[] = [
   { label: "pressed preset label", selector: '.presets button[aria-pressed="true"]', min: TEXT_MIN },
   { label: "copy summary label", selector: ".copy-summary", min: TEXT_MIN },
 ];
+
+/** Fill the form so results, the enabled copy button and errors are all rendered. */
+async function fillValidBill(page: import("@playwright/test").Page) {
+  await page.getByLabel("Bill").fill("100");
+  await page.getByLabel("People").fill("4");
+  await expect(page.getByTestId("copy-summary")).toBeEnabled();
+}
 
 test.describe("dark mode", () => {
   test.use({ colorScheme: "dark" });
@@ -69,9 +78,7 @@ test("All text and focus outlines keep AA contrast in both themes.", async ({ pa
     await page.goto("/");
     // A valid bill keeps the copy button enabled, so its label is checked in its
     // active state (disabled controls are exempt from WCAG 1.4.3).
-    await page.getByLabel("Bill").fill("100");
-    await page.getByLabel("People").fill("4");
-    await expect(page.getByTestId("copy-summary")).toBeEnabled();
+    await fillValidBill(page);
 
     const results = await page.evaluate(measureContrast, CONTRAST_TARGETS);
     for (const result of results) {
@@ -135,4 +142,31 @@ test("No toggle; the system setting decides.", async ({ page }) => {
   await expect
     .poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor))
     .toBe(lightBackground);
+});
+
+test("E2E: emulate colorScheme dark and assert the body background is dark; run the axe check in both schemes.", async ({
+  page,
+}) => {
+  // 1. colorScheme: dark emulation drives prefers-color-scheme in the browser.
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.goto("/");
+  await fillValidBill(page);
+
+  const darkBackground = await page.evaluate(
+    () => getComputedStyle(document.body).backgroundColor
+  );
+  expect(darkBackground).toBe(DARK_BG);
+
+  // 2. The axe scan runs in both schemes and reports no serious/critical issue.
+  for (const colorScheme of ["dark", "light"] as const) {
+    await page.emulateMedia({ colorScheme });
+    await page.goto("/");
+    await fillValidBill(page);
+
+    const violations = blockingViolations(await runAxe(page));
+    expect(
+      violations,
+      `${colorScheme} theme axe violations: ${JSON.stringify(violations, null, 2)}`
+    ).toEqual([]);
+  }
 });
