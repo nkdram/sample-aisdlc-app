@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { roundCents, splitBill, summaryText, TipInputError } from "./tip";
+import { MAX_BILL, roundCents, splitBill, summaryText, TipInputError } from "./tip";
 
 function mulberry32(seed: number): () => number {
   return function () {
@@ -90,5 +90,38 @@ describe("splitBill", () => {
     expect(() => splitBill({ bill: 10, tipPercent: 101, people: 1 })).toThrow("Tip must be between 0 and 100%");
     expect(() => splitBill({ bill: 10, tipPercent: 10, people: 0 })).toThrow("At least one person must pay");
     expect(() => splitBill({ bill: 10, tipPercent: 10, people: 1.5 })).toThrow(TipInputError);
+  });
+
+  it("rejects bills with more than two decimals", () => {
+    expect(() => splitBill({ bill: 10.005, tipPercent: 15, people: 1 })).toThrow(TipInputError);
+    expect(() => splitBill({ bill: 10.005, tipPercent: 15, people: 1 })).toThrow("Use at most 2 decimals");
+    expect(() => splitBill({ bill: 0.001, tipPercent: 15, people: 1 })).toThrow("Use at most 2 decimals");
+  });
+
+  it("rejects bills over the maximum", () => {
+    expect(() => splitBill({ bill: 1_000_000.01, tipPercent: 15, people: 1 })).toThrow(TipInputError);
+    expect(() => splitBill({ bill: 1_000_000.01, tipPercent: 15, people: 1 })).toThrow(
+      "Bill is too large (max 1,000,000)"
+    );
+    expect(() => splitBill({ bill: 1e9, tipPercent: 15, people: 1 })).toThrow("Bill is too large (max 1,000,000)");
+  });
+
+  it("accepts exactly the maximum bill", () => {
+    expect(MAX_BILL).toBe(1_000_000);
+    expect(splitBill({ bill: MAX_BILL, tipPercent: 15, people: 1 })).toEqual({
+      tip: 150_000,
+      total: 1_150_000,
+      perPerson: 1_150_000,
+    });
+    expect(splitBill({ bill: 1_000_000.0, tipPercent: 15, people: 1 })).toEqual({
+      tip: 150_000,
+      total: 1_150_000,
+      perPerson: 1_150_000,
+    });
+  });
+
+  it("accepts two-decimal amounts without float drift", () => {
+    expect(splitBill({ bill: 0.1, tipPercent: 10, people: 1 })).toEqual({ tip: 0.01, total: 0.11, perPerson: 0.11 });
+    expect(splitBill({ bill: 42.5, tipPercent: 15, people: 2 })).toEqual({ tip: 6.38, total: 48.88, perPerson: 24.44 });
   });
 });
