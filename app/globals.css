@@ -6,9 +6,28 @@
   --brand: #6b3fa0;
   --danger: #b42318;
   --line: #e4dff0;
+  --focus: #6b3fa0;
+  /* Let the UA paint native widgets (scrollbars, autofill) for the active scheme. */
+  color-scheme: light dark;
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
   color: var(--ink);
   background: var(--bg);
+}
+
+/* Dark theme: only the token values change, every component already reads var(--*). */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14101f;
+    --card: #1d1530;
+    --ink: #f2eefc;
+    --muted: #b3a9c9;
+    /* --brand stays #6b3fa0 so the hard-coded #fff text on it keeps 7.4:1. */
+    --brand: #6b3fa0;
+    --danger: #f4a9a0;
+    --line: #3a2f57;
+    --focus: #c9aef0;
+    color-scheme: dark;
+  }
 }
 
 * {
@@ -17,6 +36,13 @@
 
 body {
   margin: 0;
+  color: var(--ink);
+  background: var(--bg);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }
 
 .page {
@@ -50,10 +76,13 @@ label,
   font-weight: 600;
 }
 
-input {
+input,
+textarea {
   padding: 10px 12px;
   border: 1px solid var(--line);
   border-radius: 8px;
+  background: var(--card);
+  color: var(--ink);
   font-size: 16px;
 }
 
@@ -68,6 +97,7 @@ input {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--card);
+  color: var(--ink);
   cursor: pointer;
 }
 
