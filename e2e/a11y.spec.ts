@@ -3,14 +3,16 @@ import { expect, test, type Page } from "@playwright/test";
 /**
  * Why axe: SAMPLE-AISDLC-APP-9 asks for an automated accessibility check of the
  * home page, and axe-core is the standard engine for it. It is a test-time tool
- * only — no runtime dependency is added.
+ * only — it is a devDependency and never a runtime dependency.
  *
- * Why it is injected at runtime instead of imported from @axe-core/playwright:
- * dependency manifests and lockfiles are owned outside this change, so the scan
- * cannot add a package. The bundle is pinned to an exact version so the scan is
- * reproducible. Once @axe-core/playwright is a devDependency, replace runAxe
- * with `new AxeBuilder({ page }).analyze()` — nothing else changes.
+ * The scan uses @axe-core/playwright's AxeBuilder (`new AxeBuilder({ page }).analyze()`)
+ * whenever the devDependency is installed, which is the intended setup. When the
+ * package is not installed — dependency manifests and lockfiles are owned outside
+ * this change — the same pinned axe-core build is injected from the CDN instead,
+ * so the check still runs and cannot silently disappear. Both paths return the
+ * same AxeResults shape, so the assertions below are identical either way.
  */
+const AXE_PACKAGE = "@axe-core/playwright";
 const AXE_CDN = "https://cdn.jsdelivr.net/npm/axe-core@4.10.2/axe.min.js";
 
 interface AxeNode {
@@ -38,7 +40,28 @@ declare global {
   }
 }
 
+interface AxeBuilderLike {
+  analyze: () => Promise<AxeResults>;
+}
+
+type AxeBuilderConstructor = new (options: { page: Page }) => AxeBuilderLike;
+
+/** The packaged AxeBuilder, or null when @axe-core/playwright is not installed. */
+async function loadAxeBuilder(): Promise<AxeBuilderConstructor | null> {
+  try {
+    // Non-literal specifier: the package is optional at type-check time too.
+    const specifier = AXE_PACKAGE;
+    const module = (await import(specifier)) as { default?: AxeBuilderConstructor };
+    return module.default ?? null;
+  } catch {
+    return null;
+  }
+}
+
 async function runAxe(page: Page): Promise<AxeResults> {
+  const AxeBuilder = await loadAxeBuilder();
+  if (AxeBuilder) return new AxeBuilder({ page }).analyze();
+
   await page.addScriptTag({ url: AXE_CDN });
   return page.evaluate(async () => {
     const axe = window.axe;

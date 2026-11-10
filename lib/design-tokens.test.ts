@@ -145,11 +145,20 @@ describe("SAMPLE-AISDLC-APP-9 accessibility", () => {
     expect(packageJson.dependencies?.["@axe-core/playwright"]).toBeUndefined();
     expect(packageJson.dependencies?.["axe-core"]).toBeUndefined();
 
-    // The reason for the tool and the exact one-line swap to the packaged
-    // AxeBuilder are recorded in the spec, so the PR can quote them verbatim.
-    expect(a11ySpec).toMatch(/Why axe:/);
+    // When the devDependency is declared it must be a 4.x devDependency (the
+    // version the spec pins for the CDN fallback), never a runtime one.
+    const axeDevDependency = packageJson.devDependencies?.["@axe-core/playwright"];
+    if (axeDevDependency !== undefined) {
+      expect(axeDevDependency).toMatch(/^[\^~]?4\./);
+    }
+
+    // The spec uses the packaged AxeBuilder as its primary path, so adding the
+    // devDependency is all that is left to switch the scan over.
     expect(a11ySpec).toContain("new AxeBuilder({ page }).analyze()");
     expect(a11ySpec).toContain("@axe-core/playwright");
+
+    // The reason for the tool is recorded in the spec, so the PR can quote it.
+    expect(a11ySpec).toMatch(/Why axe:/);
   });
 
   it("Fix colors in app/globals.css, not inline", () => {
