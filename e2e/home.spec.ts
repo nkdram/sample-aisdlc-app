@@ -29,6 +29,13 @@ test("explains a bill with more than two decimals", async ({ page }) => {
   await expect(page.getByRole("alert")).toHaveText("Use at most 2 decimals");
 });
 
+test("E2E: 10.005 shows the decimals message.", async ({ page }) => {
+  await page.goto("/");
+  await page.getByLabel("Bill").fill("10.005");
+  await expect(page.getByRole("alert")).toHaveText("Use at most 2 decimals");
+  await expect(page.getByTestId("total")).toHaveText("$0.00");
+});
+
 test("explains a bill over the maximum", async ({ page }) => {
   await page.goto("/");
   await page.getByLabel("Bill").fill("1000000.01");
