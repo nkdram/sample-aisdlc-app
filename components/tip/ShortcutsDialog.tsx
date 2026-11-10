@@ -35,6 +35,10 @@ export function ShortcutsDialog({ onClose }: ShortcutsDialogProps) {
     }
     const first = focusable[0];
     const last = focusable[focusable.length - 1];
+    if (first === undefined || last === undefined) {
+      event.preventDefault();
+      return;
+    }
     const active = document.activeElement;
     if (event.shiftKey && (active === first || active === dialog.current)) {
       event.preventDefault();
