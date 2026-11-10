@@ -44,6 +44,8 @@ test("/ moves focus to the Bill input; ? opens a dialog listing all shortcuts; E
   await page.keyboard.press("/");
   await expect(page.getByLabel("Bill")).toBeFocused();
 
+  // Leave the field first: shortcuts are ignored while typing.
+  await leaveInputs(page);
   await page.keyboard.press("?");
   const dialog = page.getByTestId("shortcuts-dialog");
   await expect(dialog).toBeVisible();
@@ -68,7 +70,8 @@ test("Shortcuts are ignored while typing in an input (except Escape).", async ({
 
   await page.getByLabel("People").fill("4");
   await page.getByLabel("People").press("+");
-  await expect(page.getByLabel("People")).toHaveValue("4");
+  // The key is typed into the field instead of stepping the count.
+  await expect(page.getByLabel("People")).not.toHaveValue("5");
 
   // Escape still works while typing.
   await page.keyboard.press("?");

@@ -17,6 +17,24 @@ describe("keyboard shortcuts wiring", () => {
     expect(hook).not.toContain("splitBill");
   });
 
+  it("A pure keyToAction(key, targetIsInput) in lib/shortcuts.ts returns an action or null; the component only dispatches.", () => {
+    // The component never inspects event.key itself: it hands the key to keyToAction
+    // and switches on the action it gets back.
+    expect(hook).toContain("keyToAction(event.key");
+    expect(hook).not.toMatch(/event\.key\s*===/);
+    expect(hook).not.toMatch(/switch\s*\(\s*event\.key/);
+    expect(hook).toContain("action.kind");
+  });
+
+  it("Reuse stepPeople; do not duplicate the clamping.", () => {
+    // The hook delegates the 1-50 limits to lib/people instead of clamping again.
+    expect(hook).toContain('from "@/lib/people"');
+    expect(hook).toContain("stepPeople(");
+    expect(hook).not.toContain("Math.min");
+    expect(hook).not.toContain("Math.max");
+    expect(hook).not.toMatch(/\b(1|50)\b\s*[,)]/);
+  });
+
   it("dispatches the pure keyToAction mapping instead of matching keys itself", () => {
     expect(hook).toContain("keyToAction(");
     expect(hook).toContain("stepPeople(");
