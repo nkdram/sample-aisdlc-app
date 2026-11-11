@@ -25,7 +25,7 @@ describe("TipCalculator", () => {
     // The page path: TipCalculator -> useTipCalculation -> splitBill, and the thrown message is
     // rendered by ErrorMessage as role="alert". Asserted here so the behaviour is proven by the
     // unit suite too (the Playwright spec cannot run in every environment).
-    expect(useTipCalculation("10.005", 15, "1")).toEqual({
+    expect(useTipCalculation("10.005", 15, "1", "USD")).toEqual({
       result: null,
       error: "Use at most 2 decimals",
       summary: "",

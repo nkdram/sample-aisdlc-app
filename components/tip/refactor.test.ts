@@ -26,7 +26,6 @@ const CONFLICTING_FEATURES: ReadonlyArray<{ ticket: string; pattern: RegExp }> =
   { ticket: "Add a custom tip percentage", pattern: /custom/i },
   { ticket: "People stepper buttons", pattern: /stepper|increment|decrement/i },
   { ticket: "Round the per-person amount up", pattern: /roundUp|round up|Math\.ceil/i },
-  { ticket: "Support euro and pound", pattern: /euro|pound|gbp|eur\b/i },
   { ticket: "Split unevenly by shares", pattern: /\bshares\b|\bweights?\b/i },
   { ticket: "Itemised bills", pattern: /itemis|itemiz/i },
   { ticket: "Keyboard shortcuts", pattern: /onKeyDown|onKeyUp|onKeyPress|keydown/i },
@@ -107,7 +106,7 @@ describe("components/tip split", () => {
     for (const testId of ["tip", "total", "per-person", "tip-per-person"]) {
       expect(result).toContain(`data-testid="${testId}"`);
     }
-    expect(result).toContain("money.format");
+    expect(result).toContain("formatMoney(currency)");
 
     const copy = read(join(tipDir, "CopySummary.tsx"));
     expect(copy).toContain('data-testid="copy-summary"');
@@ -127,19 +126,19 @@ describe("components/tip split", () => {
     expect(order.every((index) => index >= 0)).toBe(true);
 
     // Same derived values and text as before the split.
-    expect(useTipCalculation("100", 15, "4")).toEqual({
+    expect(useTipCalculation("100", 15, "4", "USD")).toEqual({
       result: { tip: 15, total: 115, perPerson: 28.75, tipPerPerson: 3.75 },
       error: null,
       summary: "Bill $100.00 + tip $15.00 (15%) = $115.00. Each of 4 pays $28.75.",
       canCopy: true,
     });
-    expect(useTipCalculation("", 15, "1")).toEqual({
+    expect(useTipCalculation("", 15, "1", "USD")).toEqual({
       result: null,
       error: null,
       summary: "",
       canCopy: false,
     });
-    expect(useTipCalculation("10", 15, "0")).toEqual({
+    expect(useTipCalculation("10", 15, "0", "USD")).toEqual({
       result: null,
       error: "At least one person must pay",
       summary: "",
@@ -173,18 +172,22 @@ describe("components/tip split", () => {
   });
 
   it("keeps the money formatter in one place (lib/format.ts)", () => {
+    // The currency ticket moved the Intl.NumberFormat construction into lib/currency.ts;
+    // lib/format.ts stays the single seam every caller imports from.
     const files = ["lib", "components", "app"].flatMap((dir) => productFiles(join(repoRoot, dir)));
     const formatters = files.filter((file) => read(file).includes("Intl.NumberFormat")).map(relative);
-    expect(formatters).toEqual(["lib/format.ts"]);
+    expect(formatters).toEqual(["lib/currency.ts"]);
+    expect(read(join(repoRoot, "lib", "format.ts"))).toContain("formatMoney");
   });
 
   it("pure move-and-extract: no feature ticket behaviour is combined in this change", () => {
     // The presets are still the three the app shipped with.
     expect([...TIP_PRESETS]).toEqual([10, 15, 20]);
 
-    // The calculator still holds exactly the three inputs it held before.
+    // The calculator holds the three inputs it held before, plus the currency
+    // selection added by the euro/pound ticket.
     const calculator = read(calculatorPath);
-    expect(calculator.match(/useState[<(]/g)).toHaveLength(3);
+    expect(calculator.match(/useState[<(]/g)).toHaveLength(4);
 
     // No dependency was added for the refactor.
     const pkg = JSON.parse(read(join(repoRoot, "package.json"))) as {
@@ -193,7 +196,7 @@ describe("components/tip split", () => {
     expect(Object.keys(pkg.dependencies).sort()).toEqual(["next", "react", "react-dom"]);
   });
 
-  it("conflicts with: Add a custom tip percentage, People stepper buttons, Round the per-person amount up, Support euro and pound, Split unevenly by shares, Itemised bills, Keyboard shortcuts — none of them is present", () => {
+  it("conflicts with: Add a custom tip percentage, People stepper buttons, Round the per-person amount up, Split unevenly by shares, Itemised bills, Keyboard shortcuts — none of them is present", () => {
     const files = [calculatorPath, ...productFiles(tipDir)];
     for (const file of files) {
       const source = read(file);

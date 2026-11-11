@@ -93,13 +93,24 @@ test("Focus is always visible (2px outline with at least 3:1 contrast) on inputs
 }) => {
   await page.goto("/");
 
+  const outlineOf = async (selector: string) =>
+    page.locator(selector).evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { width: style.outlineWidth, style: style.outlineStyle, color: style.outlineColor };
+    });
+
+  // The currency select (euro/pound ticket) is the first control in the card.
+  await page.keyboard.press("Tab");
+  await expect(page.locator("#currency")).toBeFocused();
+  const selectOutline = await outlineOf("#currency");
+  expect(selectOutline.style).toBe("solid");
+  expect(selectOutline.width).toBe("2px");
+  expect(selectOutline.color).toBe("rgb(107, 63, 160)");
+
   await page.keyboard.press("Tab");
   await expect(page.locator("#bill")).toBeFocused();
 
-  const outline = await page.locator("#bill").evaluate((element) => {
-    const style = getComputedStyle(element);
-    return { width: style.outlineWidth, style: style.outlineStyle, color: style.outlineColor };
-  });
+  const outline = await outlineOf("#bill");
 
   expect(outline.style).toBe("solid");
   expect(outline.width).toBe("2px");
@@ -115,7 +126,7 @@ test("Focus is always visible (2px outline with at least 3:1 contrast) on inputs
   expect(buttonOutline).toBe("2px");
 });
 
-test("tab order is Bill -> tip presets -> People", async ({ page }) => {
+test("tab order is currency -> Bill -> tip presets -> People", async ({ page }) => {
   await page.goto("/");
 
   const focused = async () =>
@@ -123,6 +134,10 @@ test("tab order is Bill -> tip presets -> People", async ({ page }) => {
       const active = document.activeElement as HTMLElement | null;
       return active?.id || active?.textContent?.trim() || active?.tagName || "";
     });
+
+  // The currency select (euro/pound ticket) comes first in the card.
+  await page.keyboard.press("Tab");
+  await expect.poll(focused).toBe("currency");
 
   await page.keyboard.press("Tab");
   await expect.poll(focused).toBe("bill");
@@ -141,6 +156,7 @@ test("tab order is Bill -> tip presets -> People", async ({ page }) => {
 test("Every input and button group has a visible label and an accessible name", async ({ page }) => {
   await page.goto("/");
 
+  await expect(page.getByLabel("Currency")).toBeVisible();
   await expect(page.getByLabel("Bill")).toBeVisible();
   await expect(page.getByLabel("People")).toBeVisible();
   await expect(page.locator("span.label")).toHaveText("Tip");

@@ -53,10 +53,11 @@ test("keeps the same error text and alert role", async ({ page }) => {
 test("adds no controls from the conflicting feature tickets", async ({ page }) => {
   await page.goto("/");
 
-  // Three preset buttons plus the copy button, two text inputs, nothing else.
+  // Three preset buttons plus the copy button, two text inputs and the currency
+  // select added by the euro/pound ticket, nothing else.
   await expect(page.getByRole("button")).toHaveCount(4);
   await expect(page.locator("input")).toHaveCount(2);
-  await expect(page.getByRole("combobox")).toHaveCount(0);
+  await expect(page.getByRole("combobox")).toHaveCount(1);
   await expect(page.getByRole("spinbutton")).toHaveCount(0);
   await expect(page.getByRole("checkbox")).toHaveCount(0);
 });
