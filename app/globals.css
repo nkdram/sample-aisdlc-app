@@ -6,6 +6,9 @@
   --brand: #6b3fa0;
   --danger: #b42318;
   --line: #e4dff0;
+  /* Disabled controls are exempt from WCAG contrast, but this keeps the copy
+     button readable on --line instead of relying on the exemption. */
+  --disabled-ink: #5d5573;
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
   color: var(--ink);
   background: var(--bg);
@@ -56,6 +59,18 @@ select {
   border: 1px solid var(--line);
   border-radius: 8px;
   font-size: 16px;
+}
+
+/* Focus is always visible: 2px brand outline, ~7:1 against the card and page. */
+:is(input, button, textarea):focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* The currency select (euro/pound ticket) gets the same visible focus ring. */
+select:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
 }
 
 .presets {
@@ -113,7 +128,7 @@ select {
 .copy-summary:disabled {
   border-color: var(--line);
   background: var(--line);
-  color: var(--muted);
+  color: var(--disabled-ink);
   cursor: not-allowed;
 }
 

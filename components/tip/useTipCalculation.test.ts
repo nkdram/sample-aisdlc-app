@@ -8,7 +8,7 @@ describe("useTipCalculation with a currency", () => {
     const gbp = useTipCalculation("100", 15, "4", "GBP");
 
     // Identical numbers in every currency.
-    expect(usd.result).toEqual({ tip: 15, total: 115, perPerson: 28.75 });
+    expect(usd.result).toEqual({ tip: 15, total: 115, perPerson: 28.75, tipPerPerson: 3.75 });
     expect(eur.result).toEqual(usd.result);
     expect(gbp.result).toEqual(usd.result);
 
@@ -26,7 +26,7 @@ describe("useTipCalculation with a currency", () => {
 
     expect(comma.error).toBeNull();
     expect(comma.result).toEqual(dot.result);
-    expect(comma.result).toEqual({ tip: 6.38, total: 48.88, perPerson: 48.88 });
+    expect(comma.result).toEqual({ tip: 6.38, total: 48.88, perPerson: 48.88, tipPerPerson: 6.38 });
     expect(comma.summary).toBe(dot.summary);
   });
 

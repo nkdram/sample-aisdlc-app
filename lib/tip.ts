@@ -12,9 +12,24 @@ export interface TipResult {
   readonly tip: number;
   readonly total: number;
   readonly perPerson: number;
+  /** The tip alone, split evenly and rounded to cents. */
+  readonly tipPerPerson: number;
 }
 
 export class TipInputError extends Error {}
+
+/** Largest bill the splitter accepts, in the currency's main unit. */
+export const MAX_BILL = 1_000_000;
+
+/**
+ * True when the amount has at most two decimal places.
+ * Scales with the same String idiom as roundCents so 0.1 is not rejected by float drift;
+ * exponent notation (1e-7) is more precise than cents, so it counts as too many decimals.
+ */
+function hasAtMostTwoDecimals(value: number): boolean {
+  if (String(value).includes("e")) return false;
+  return Number.isInteger(Number(`${value}e2`));
+}
 
 /**
  * Rounds to cents, half away from zero.
@@ -38,11 +53,13 @@ export function roundCents(value: number): number {
 
 export function splitBill({ bill, tipPercent, people }: TipInput): TipResult {
   if (!Number.isFinite(bill) || bill < 0) throw new TipInputError("Bill must be zero or more");
+  if (bill > MAX_BILL) throw new TipInputError("Bill is too large (max 1,000,000)");
+  if (!hasAtMostTwoDecimals(bill)) throw new TipInputError("Use at most 2 decimals");
   if (!Number.isFinite(tipPercent) || tipPercent < 0 || tipPercent > 100) throw new TipInputError("Tip must be between 0 and 100%");
   if (!Number.isInteger(people) || people < 1) throw new TipInputError("At least one person must pay");
   const tip = roundCents((bill * tipPercent) / 100);
   const total = roundCents(bill + tip);
-  return { tip, total, perPerson: roundCents(total / people) };
+  return { tip, total, perPerson: roundCents(total / people), tipPerPerson: roundCents(tip / people) };
 }
 
 /** Formats a bill/tip/per-person summary for sharing. */
