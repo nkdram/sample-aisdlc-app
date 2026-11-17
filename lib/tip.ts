@@ -21,6 +21,14 @@ export class TipInputError extends Error {}
 /** Largest bill the splitter accepts, in the currency's main unit. */
 export const MAX_BILL = 1_000_000;
 
+/** Most people the splitter accepts; the stepper buttons clamp to this. */
+export const MAX_PEOPLE = 50;
+
+/** Steps the people count by delta, clamped to 1..MAX_PEOPLE. */
+export function stepPeople(current: number, delta: number): number {
+  return Math.min(MAX_PEOPLE, Math.max(1, current + delta));
+}
+
 /**
  * True when the amount has at most two decimal places.
  * Scales with the same String idiom as roundCents so 0.1 is not rejected by float drift;

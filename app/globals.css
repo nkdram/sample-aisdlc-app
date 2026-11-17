@@ -93,6 +93,32 @@ select:focus-visible {
   color: #fff;
 }
 
+.people-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.people-controls input {
+  flex: 1;
+}
+
+.people-controls button {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.people-controls button:disabled {
+  border-color: var(--line);
+  color: var(--disabled-ink);
+  cursor: not-allowed;
+}
+
 .error {
   margin: 0;
   color: var(--danger);

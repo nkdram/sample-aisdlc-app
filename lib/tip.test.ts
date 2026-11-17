@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { MAX_BILL, roundCents, splitBill, summaryText, TipInputError } from "./tip";
+import { MAX_BILL, roundCents, splitBill, stepPeople, summaryText, TipInputError } from "./tip";
 
 function mulberry32(seed: number): () => number {
   return function () {
@@ -232,5 +232,13 @@ describe("splitBill", () => {
       perPerson: 0.11,
       tipPerPerson: 0.01,
     });
+  });
+});
+
+describe("stepPeople", () => {
+  it("Unit: stepPeople(1, -1) = 1, stepPeople(50, 1) = 50, stepPeople(3, 1) = 4.", () => {
+    expect(stepPeople(1, -1)).toBe(1);
+    expect(stepPeople(50, 1)).toBe(50);
+    expect(stepPeople(3, 1)).toBe(4);
   });
 });

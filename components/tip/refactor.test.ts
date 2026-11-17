@@ -24,7 +24,6 @@ const FOCUSED_COMPONENTS = [
  */
 const CONFLICTING_FEATURES: ReadonlyArray<{ ticket: string; pattern: RegExp }> = [
   { ticket: "Add a custom tip percentage", pattern: /custom/i },
-  { ticket: "People stepper buttons", pattern: /stepper|increment|decrement/i },
   { ticket: "Round the per-person amount up", pattern: /roundUp|round up|Math\.ceil/i },
   { ticket: "Split unevenly by shares", pattern: /\bshares\b|\bweights?\b/i },
   { ticket: "Itemised bills", pattern: /itemis|itemiz/i },
@@ -196,7 +195,7 @@ describe("components/tip split", () => {
     expect(Object.keys(pkg.dependencies).sort()).toEqual(["next", "react", "react-dom"]);
   });
 
-  it("conflicts with: Add a custom tip percentage, People stepper buttons, Round the per-person amount up, Split unevenly by shares, Itemised bills, Keyboard shortcuts — none of them is present", () => {
+  it("conflicts with: Add a custom tip percentage, Round the per-person amount up, Split unevenly by shares, Itemised bills, Keyboard shortcuts — none of them is present", () => {
     const files = [calculatorPath, ...productFiles(tipDir)];
     for (const file of files) {
       const source = read(file);
