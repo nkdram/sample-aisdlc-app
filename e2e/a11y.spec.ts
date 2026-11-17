@@ -150,7 +150,13 @@ test("tab order is currency -> Bill -> tip presets -> People", async ({ page }) 
   await expect.poll(focused).toBe("20%");
 
   await page.keyboard.press("Tab");
+  await expect.poll(focused).toBe("-");
+
+  await page.keyboard.press("Tab");
   await expect.poll(focused).toBe("people");
+
+  await page.keyboard.press("Tab");
+  await expect.poll(focused).toBe("+");
 });
 
 test("Every input and button group has a visible label and an accessible name", async ({ page }) => {
@@ -164,6 +170,8 @@ test("Every input and button group has a visible label and an accessible name", 
   for (const name of ["10%", "15%", "20%"]) {
     await expect(page.getByRole("button", { name })).toBeVisible();
   }
+  await expect(page.getByRole("button", { name: "Fewer people" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "More people" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Copy summary" })).toBeVisible();
 });
 

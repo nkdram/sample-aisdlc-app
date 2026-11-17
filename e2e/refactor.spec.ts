@@ -38,7 +38,11 @@ test("keeps the same focus order", async ({ page }) => {
   await page.keyboard.press("Tab");
   await expect(page.getByRole("button", { name: "20%" })).toBeFocused();
   await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Fewer people" })).toBeFocused();
+  await page.keyboard.press("Tab");
   await expect(page.getByLabel("People")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "More people" })).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(page.getByTestId("copy-summary")).toBeFocused();
 });
@@ -53,9 +57,9 @@ test("keeps the same error text and alert role", async ({ page }) => {
 test("adds no controls from the conflicting feature tickets", async ({ page }) => {
   await page.goto("/");
 
-  // Three preset buttons plus the copy button, two text inputs and the currency
-  // select added by the euro/pound ticket, nothing else.
-  await expect(page.getByRole("button")).toHaveCount(4);
+  // Three preset buttons plus the copy button and the two people stepper
+  // buttons, two text inputs and the currency select, nothing else.
+  await expect(page.getByRole("button")).toHaveCount(6);
   await expect(page.locator("input")).toHaveCount(2);
   await expect(page.getByRole("combobox")).toHaveCount(1);
   await expect(page.getByRole("spinbutton")).toHaveCount(0);

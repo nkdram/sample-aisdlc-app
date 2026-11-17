@@ -11,6 +11,7 @@ import { TipPresets } from "@/components/tip/TipPresets";
 import { useCopySummary } from "@/components/tip/useCopySummary";
 import { useTipCalculation } from "@/components/tip/useTipCalculation";
 import type { Currency } from "@/lib/currency";
+import { stepPeople } from "@/lib/tip";
 
 export function TipCalculator() {
   const [currency, setCurrency] = useState<Currency>("USD");
@@ -19,13 +20,15 @@ export function TipCalculator() {
   const [people, setPeople] = useState("1");
   const { result, error, summary, canCopy } = useTipCalculation(bill, tipPercent, people, currency);
   const { copied, clipboardError, handleCopy } = useCopySummary(canCopy, summary);
+  const peopleCount = Number(people);
+  const stepPeopleCount = (delta: number) => setPeople(String(stepPeople(peopleCount, delta)));
 
   return (
     <section className="card" aria-label="Tip calculator">
       <CurrencySelect currency={currency} onChange={setCurrency} />
       <BillInput bill={bill} onChange={setBill} />
       <TipPresets tipPercent={tipPercent} onSelect={setTipPercent} />
-      <PeopleInput people={people} onChange={setPeople} />
+      <PeopleInput people={people} onChange={setPeople} onStep={stepPeopleCount} peopleCount={peopleCount} />
       {error ? <ErrorMessage message={error} /> : null}
       <ResultList result={result} currency={currency} />
       <CopySummary copied={copied} clipboardError={clipboardError} summary={summary} canCopy={canCopy} onCopy={handleCopy} />
